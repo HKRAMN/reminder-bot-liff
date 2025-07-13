@@ -31,7 +31,7 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
         // --- 定数 ---
-        const GCF_URL = 'ここに後で設定保存用URLを貼る'; // ★ Part 5で取得するURLに書き換える
+        const GCF_URL = 'https://save-settings-370939047640.asia-northeast1.run.app'; // ★ Part 5で取得するURLに書き換える
 
         // --- 初期化処理 ---
         document.addEventListener('DOMContentLoaded', function() {
