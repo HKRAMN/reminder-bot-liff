@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通知時間設定</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .container { max-width: 400px; margin: auto; }
+        select, button { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
+        #message { margin-top: 20px; font-weight: bold; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>通知時間の設定</h2>
+        <p>通知を受け取りたい時間帯を選んでください。</p>
+
+        <label for="start-time">開始時間:</label>
+        <select id="start-time"></select>
+
+        <label for="end-time">終了時間:</label>
+        <select id="end-time"></select>
+
+        <button id="save-button">設定を保存する</button>
+
+        <p id="message"></p>
+    </div>
+
+    <!-- LINE LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        // --- 定数 ---
+        const GCF_URL = 'ここに後で設定保存用URLを貼る'; // ★ Part 5で取得するURLに書き換える
+
+        // --- 初期化処理 ---
+        document.addEventListener('DOMContentLoaded', function() {
+            // セレクトボックスに時間を設定
+            const startSelect = document.getElementById('start-time');
+            const endSelect = document.getElementById('end-time');
+            for (let i = 0; i <= 24; i++) {
+                const hour = i.toString().padStart(2, '0');
+                startSelect.options.add(new Option(`${hour}時`, hour));
+                endSelect.options.add(new Option(`${hour}時`, hour));
+            }
+            startSelect.value = '06'; // デフォルト値
+            endSelect.value = '24'; // デフォルト値
+
+            // LIFFの初期化
+            liff.init({ liffId: 'ここに後でLIFF IDを貼る' }) // ★ Part 4-4で取得するIDに書き換える
+                .then(() => {
+                    if (!liff.isLoggedIn()) {
+                        liff.login();
+                    }
+                })
+                .catch(err => console.error(err));
+        });
+
+        // --- イベントリスナー ---
+        document.getElementById('save-button').addEventListener('click', () => {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = '保存中...';
+            
+            if (!liff.isLoggedIn()) {
+                messageEl.textContent = 'エラー: LINEでログインしてください。';
+                return;
+            }
+
+            liff.getProfile()
+                .then(profile => {
+                    const userId = profile.userId;
+                    const startTime = document.getElementById('start-time').value;
+                    const endTime = document.getElementById('end-time').value;
+
+                    // Google Cloud Functionにデータを送信
+                    fetch(GCF_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId, startTime, endTime })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            messageEl.textContent = '設定を保存しました！';
+                            liff.closeWindow(); // 成功したらウィンドウを閉じる
+                        } else {
+                            messageEl.textContent = 'エラーが発生しました。';
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Fetch Error:', err);
+                        messageEl.textContent = '通信エラーが発生しました。';
+                    });
+                })
+                .catch(err => {
+                    console.error('Profile Error:', err);
+                    messageEl.textContent = 'ユーザー情報の取得に失敗しました。';
+                });
+        });
+    </script>
+</body>
+</html>
