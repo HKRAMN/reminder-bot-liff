@@ -47,7 +47,7 @@
             endSelect.value = '24'; // デフォルト値
 
             // LIFFの初期化
-            liff.init({ liffId: 'ここに後でLIFF IDを貼る' }) // ★ Part 4-4で取得するIDに書き換える
+            liff.init({ liffId: '2007739985-9OvW0MBn' }) // ★ Part 4-4で取得するIDに書き換える
                 .then(() => {
                     if (!liff.isLoggedIn()) {
                         liff.login();
